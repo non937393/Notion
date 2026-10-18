@@ -2,7 +2,9 @@
 
 This starter creates a small iOS app with a dark, Notion-inspired workspace. The interface is bundled in `Resources/index.html` and displayed by a SwiftUI `WKWebView`. Notes, tasks, projects and ideas are saved locally inside the app.
 
-## Build an unsigned IPA with GitHub Actions
+## IGNORE 
+
+Build an unsigned IPA with GitHub Actions
 
 1. Upload the contents of this folder into the root of `non937393/Notion` (keep the `.github/workflows/build-ipa.yml` path).
 2. Open the repository's **Actions** tab.
