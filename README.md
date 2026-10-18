@@ -12,7 +12,7 @@ Build an unsigned IPA with GitHub Actions
 4. When the run succeeds, open the run and download the `Notion-unsigned-IPA` artifact. GitHub downloads artifacts as a ZIP; extract it to get `Notion.ipa`.
 5. Import the IPA into SideStore and try installing it. SideStore signs apps using your Apple Account. An unsigned IPA is a common distribution format for this workflow, but installation can still fail if the app/package is incompatible.
 
-## Notes
+Notes
 
 - Bundle ID: `com.non937393.notion`.
 - This is not the official Notion app and has no account or cloud sync.
