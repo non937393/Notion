@@ -1,0 +1,27 @@
+name: Notion
+options:
+  bundleIdPrefix: com.non937393
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+targets:
+  Notion:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/Notion
+      - path: Resources
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.non937393.notion
+        PRODUCT_NAME: Notion
+        INFOPLIST_KEY_CFBundleDisplayName: Notion
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
