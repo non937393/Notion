@@ -1,20 +1,189 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0e1014"><title>Notion Workspace</title>
-<style>
-:root{color-scheme:dark;--bg:#0e1014;--panel:#171a21;--panel2:#20242d;--text:#f3f4f6;--muted:#9ca3af;--accent:#a6b0ff;--line:#2b303b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px -apple-system,BlinkMacSystemFont,sans-serif}header{padding:calc(env(safe-area-inset-top) + 22px) 20px 18px;border-bottom:1px solid var(--line)}.brand{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}h1{font-size:29px;margin:9px 0 4px}header p{color:var(--muted);margin:0}nav{display:flex;gap:8px;padding:14px 16px;overflow:auto;border-bottom:1px solid var(--line)}nav button{white-space:nowrap;background:var(--panel);color:var(--muted);border:1px solid var(--line);padding:10px 13px;border-radius:12px}nav button.active{background:#252b40;color:white;border-color:#414c7b}main{padding:20px 16px 40px;max-width:760px;margin:auto}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}h2{font-size:20px;margin:0 0 14px}.muted{color:var(--muted)}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:10px 0}input,textarea{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:12px;font:inherit;margin:5px 0}textarea{min-height:90px;resize:vertical}button{font:inherit;cursor:pointer}.primary{background:var(--accent);color:#0b1024;border:0;border-radius:11px;padding:11px 14px;font-weight:700}.small{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:8px 10px}.item-title{font-weight:650;margin-bottom:6px;overflow-wrap:anywhere}.item-body{white-space:pre-wrap;color:var(--muted);overflow-wrap:anywhere}.task{display:flex;align-items:flex-start;gap:10px}.task input{width:19px;margin-top:2px}.done{text-decoration:line-through;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{font-size:25px;font-weight:750}.stat-label{color:var(--muted);font-size:13px;margin-top:5px}footer{padding:20px;color:var(--muted);text-align:center;font-size:12px}
-</style></head><body>
-<header><div class="brand">PERSONAL WORKSPACE</div><h1>Good to see you.</h1><p>Keep your notes, tasks, projects, and ideas together.</p></header>
-<nav><button class="active" data-page="Home">Home</button><button data-page="Notes">Notes</button><button data-page="Tasks">Tasks</button><button data-page="Projects">Projects</button><button data-page="Ideas">Ideas</button></nav><main id="app"></main><footer>Your workspace is saved on this device.</footer>
-<script>
-const $=s=>document.querySelector(s), load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}, save=()=>{localStorage.setItem('nw_notes',JSON.stringify(notes));localStorage.setItem('nw_tasks',JSON.stringify(tasks));localStorage.setItem('nw_projects',JSON.stringify(projects));localStorage.setItem('nw_ideas',JSON.stringify(ideas))}, id=()=>Date.now()+Math.floor(Math.random()*999);
-let notes=load('nw_notes',[{id:1,title:'Welcome to your workspace',body:'Capture thoughts, plan your week, and keep projects moving.'}]),tasks=load('nw_tasks',[{id:2,title:'Make this workspace yours',done:false}]),projects=load('nw_projects',[{id:3,title:'My first project',body:'Collect milestones and next steps here.'}]),ideas=load('nw_ideas',[]),page='Home';
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function card(title,body,actions=''){return `<section class="card"><div class="row"><div class="item-title">${esc(title)}</div><div>${actions}</div></div>${body?`<div class="item-body">${esc(body)}</div>`:''}</section>`}
-function render(){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const root=$('#app');
-if(page==='Home'){root.innerHTML=`<h2>Your overview</h2><div class="grid"><div class="card"><div class="stat">${notes.length}</div><div class="stat-label">Notes</div></div><div class="card"><div class="stat">${tasks.filter(t=>!t.done).length}</div><div class="stat-label">Open tasks</div></div><div class="card"><div class="stat">${projects.length}</div><div class="stat-label">Projects</div></div><div class="card"><div class="stat">${ideas.length}</div><div class="stat-label">Ideas</div></div></div><h2 style="margin-top:25px">Quick capture</h2><div class="card"><input id="quick" placeholder="Something to remember…"><button class="primary" id="quickAdd">Save as a note</button></div><h2 style="margin-top:25px">Next tasks</h2>${tasks.filter(t=>!t.done).slice(0,3).map(t=>card(t.title,'')).join('')||'<p class="muted">You’re all caught up.</p>'}`;$('#quickAdd').onclick=()=>{let v=$('#quick').value.trim();if(v){notes.unshift({id:id(),title:v,body:''});save();render()}};
-}else if(page==='Notes'||page==='Ideas'){let list=page==='Notes'?notes:ideas;root.innerHTML=`<div class="row"><h2>${page}</h2><button class="primary" id="new">＋ New</button></div><div id="form"></div><div>${list.map(x=>card(x.title,x.body,`<button class="small" data-edit="${x.id}">Edit</button> <button class="small" data-del="${x.id}">Delete</button>`)).join('')||'<p class="muted">Nothing here yet. Add your first one.</p>'}</div>`;$('#new').onclick=()=>{form(`<input id="title" placeholder="Title"><textarea id="body" placeholder="Write something…"></textarea><button class="primary" id="save">Save</button>`,()=>{let title=$('#title').value.trim();if(title){list.unshift({id:id(),title,body:$('#body').value.trim()});save();render()}})};root.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{let i=list.findIndex(x=>x.id==b.dataset.del);if(i>=0)list.splice(i,1);save();render()});root.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{let x=list.find(x=>x.id==b.dataset.edit);form(`<input id="title" value="${esc(x.title)}"><textarea id="body">${esc(x.body)}</textarea><button class="primary" id="save">Update</button>`,()=>{x.title=$('#title').value.trim()||x.title;x.body=$('#body').value.trim();save();render()})});
-}else if(page==='Tasks'){root.innerHTML=`<div class="row"><h2>Tasks</h2><button class="primary" id="new">＋ Add task</button></div><div id="form"></div>${tasks.map(t=>`<section class="card task"><input type="checkbox" data-task="${t.id}" ${t.done?'checked':''}><div style="flex:1"><div class="item-title ${t.done?'done':''}">${esc(t.title)}</div></div><button class="small" data-del="${t.id}">Delete</button></section>`).join('')||'<p class="muted">No tasks yet.</p>'}`;$('#new').onclick=()=>{form(`<input id="title" placeholder="What needs doing?"><button class="primary" id="save">Add task</button>`,()=>{let v=$('#title').value.trim();if(v){tasks.unshift({id:id(),title:v,done:false});save();render()}})};root.querySelectorAll('[data-task]').forEach(b=>b.onchange=()=>{let t=tasks.find(x=>x.id==b.dataset.task);if(t)t.done=b.checked;save();render()});root.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{tasks=tasks.filter(x=>x.id!=b.dataset.del);save();render()});
-}else{root.innerHTML=`<div class="row"><h2>Projects</h2><button class="primary" id="new">＋ New project</button></div><div id="form"></div>${projects.map(p=>card(p.title,p.body,`<button class="small" data-edit="${p.id}">Edit</button> <button class="small" data-del="${p.id}">Delete</button>`)).join('')||'<p class="muted">Start a project to organize a goal.</p>'}`;$('#new').onclick=()=>{form(`<input id="title" placeholder="Project name"><textarea id="body" placeholder="Goal or next steps"></textarea><button class="primary" id="save">Create project</button>`,()=>{let v=$('#title').value.trim();if(v){projects.unshift({id:id(),title:v,body:$('#body').value.trim()});save();render()}})};root.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{projects=projects.filter(x=>x.id!=b.dataset.del);save();render()});root.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{let p=projects.find(x=>x.id==b.dataset.edit);form(`<input id="title" value="${esc(p.title)}"><textarea id="body">${esc(p.body)}</textarea><button class="primary" id="save">Update</button>`,()=>{p.title=$('#title').value.trim()||p.title;p.body=$('#body').value.trim();save();render()})})}}
-function form(html,callback){$('#form').innerHTML=`<section class="card">${html}</section>`;$('#save').onclick=callback}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{page=b.dataset.page;render()});save();render();
-</script></body></html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080d14">
+  <title>Notion — Your Workspace</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">N<span>✦</span></div>
+        <span>notion<span class="brand-dot">.</span></span>
+      </div>
+
+      <button class="workspace-switcher" id="workspaceButton">
+        <span class="workspace-avatar">N</span>
+        <span class="workspace-label">
+          <strong>My workspace</strong>
+          <small>Personal space</small>
+        </span>
+        <span class="muted">⌄</span>
+      </button>
+
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="navigation">
+        <button class="nav-item active" data-page="Home">
+          <span>⌂</span> Home
+        </button>
+        <button class="nav-item" data-page="Notes">
+          <span>▤</span> Notes
+        </button>
+        <button class="nav-item" data-page="Tasks">
+          <span>☑</span> Tasks
+          <span class="nav-count" id="taskCount">0</span>
+        </button>
+        <button class="nav-item" data-page="Projects">
+          <span>◫</span> Projects
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="storage-card">
+          <span class="storage-sparkle">✧</span>
+          <strong>Your ideas, your space.</strong>
+          <p>A little progress every day adds up.</p>
+          <div class="storage-track"><span></span></div>
+          <small>Keep creating ✦</small>
+        </div>
+        <div class="profile">
+          <div class="profile-avatar">N</div>
+          <div><strong>Personal</strong><small>Free workspace</small></div>
+          <span class="muted">•••</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menuButton"
+                aria-label="Toggle navigation">☰</button>
+        <div class="breadcrumbs">
+          <span>Workspace</span><span class="crumb-divider">/</span>
+          <strong id="breadcrumb">Home</strong>
+        </div>
+        <div class="top-actions">
+          <span class="save-status"><span></span> Saved locally</span>
+          <button class="icon-button" id="themeButton"
+                  aria-label="Toggle visual theme">◐</button>
+          <button class="avatar-small">N</button>
+        </div>
+      </header>
+
+      <section class="page-content" id="pageContent">
+        <div class="welcome-row">
+          <div class="welcome-copy">
+            <div class="eyebrow"><span class="live-dot"></span> YOUR PERSONAL SPACE</div>
+            <h1 id="greeting">Good evening <span class="wave">✦</span></h1>
+            <p class="subtitle">A fresh page. A little room to think.</p>
+          </div>
+          <div class="date-chip" id="dateChip"></div>
+        </div>
+
+        <section class="hero-card">
+          <div class="hero-orb orb-one"></div>
+          <div class="hero-orb orb-two"></div>
+          <div class="hero-content">
+            <span class="hero-kicker">✦ YOUR SPACE TO CREATE</span>
+            <h2>Make room for<br>your <span>next big idea.</span></h2>
+            <p>Capture a thought, start a project, or make today count.</p>
+            <button class="primary-button" id="heroCreate">＋ Create a note <span>↗</span></button>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="art-ring ring-one"></div>
+            <div class="art-ring ring-two"></div>
+            <div class="art-glass">
+              <div class="art-line line-long"></div>
+              <div class="art-line"></div>
+              <div class="art-line line-short"></div>
+              <div class="art-check">✓</div>
+            </div>
+            <span class="float-star star-one">✦</span>
+            <span class="float-star star-two">✧</span>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Workspace statistics">
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon cyan">▤</span><span class="stat-trend">YOUR LIBRARY</span></div>
+            <div class="stat-number" id="notesStat">0</div>
+            <div class="stat-label">Notes created</div>
+            <div class="stat-foot">Every idea has a home.</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon violet">☑</span><span class="stat-trend">KEEP GOING</span></div>
+            <div class="stat-number" id="tasksStat">0</div>
+            <div class="stat-label">Tasks remaining</div>
+            <div class="stat-foot">One step at a time.</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top"><span class="stat-icon orange">✧</span><span class="stat-trend">LITTLE WINS</span></div>
+            <div class="stat-number" id="doneStat">0</div>
+            <div class="stat-label">Tasks completed</div>
+            <div class="stat-foot">Look how far you've come.</div>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <div class="panel notes-panel">
+            <div class="panel-heading">
+              <div><h3 id="listTitle">Recent notes</h3><p>Your thoughts, all in one place.</p></div>
+              <button class="text-button" id="viewAll">View all <span>→</span></button>
+            </div>
+            <div class="notes-list" id="notesList"></div>
+          </div>
+
+          <div class="panel tasks-panel">
+            <div class="panel-heading">
+              <div><h3>Quick tasks</h3><p>Small steps, real progress.</p></div>
+              <span class="task-pill" id="taskPill">0 open</span>
+            </div>
+            <form class="task-form" id="taskForm">
+              <input id="taskInput" maxlength="160"
+                     placeholder="Add something to do…" autocomplete="off">
+              <button type="submit" aria-label="Add task">＋</button>
+            </form>
+            <div class="tasks-list" id="tasksList"></div>
+            <div class="task-footer"><span id="taskFooter">You're doing great.</span><span>✦</span></div>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span>Made for your ideas <span class="footer-heart">✦</span></span>
+          <span>Notion workspace · Stored on this device</span>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="noteDialog" class="note-dialog">
+    <form id="noteForm">
+      <div class="dialog-heading">
+        <div><span class="eyebrow">YOUR IDEAS</span><h2 id="dialogTitle">Create a note</h2></div>
+        <button type="button" class="icon-button" id="closeDialog"
+                aria-label="Close">✕</button>
+      </div>
+      <label for="noteTitle">Title</label>
+      <input id="noteTitle" maxlength="120" placeholder="Give your idea a name…" required>
+      <label for="noteBody">Your thoughts</label>
+      <textarea id="noteBody" maxlength="10000" rows="6"
+                placeholder="Start writing here…"></textarea>
+      <div class="dialog-actions">
+        <button type="button" class="secondary-button" id="cancelNote">Cancel</button>
+        <button type="submit" class="primary-button">Save note <span>↗</span></button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
