@@ -101,6 +101,43 @@ jobs:
           echo "Look above for CompileAssetCatalog warnings or errors."
 
 
+      
+      - name: Check compiled app icon
+        run: |
+          set -e
+
+          APP="build/DerivedData/Build/Products/Release-iphoneos/Notion.app"
+
+          test -f "$APP/Assets.car"
+          test -f "$APP/Info.plist"
+
+          xcrun --sdk iphoneos assetutil --info "$APP/Assets.car" \
+            > /tmp/assets.json
+
+          python3 - <<'PY'
+          import json
+
+          with open("/tmp/assets.json") as f:
+              assets = json.load(f)
+
+          icons = [
+              item for item in assets
+              if item.get("Name") == "AppIcon"
+          ]
+
+          print("Compiled AppIcon entries:", len(icons))
+          for icon in icons:
+              print({
+                  "Name": icon.get("Name"),
+                  "PixelWidth": icon.get("PixelWidth"),
+                  "PixelHeight": icon.get("PixelHeight"),
+                  "AssetType": icon.get("AssetType")
+              })
+
+          if not icons:
+              raise SystemExit("AppIcon was not found in Assets.car")
+          PY
+
       - name: Package IPA
         run: |
           set -e
@@ -114,6 +151,7 @@ jobs:
 
           cd build/ipa
           zip -qry "$GITHUB_WORKSPACE/Notion.ipa" Payload
+
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
