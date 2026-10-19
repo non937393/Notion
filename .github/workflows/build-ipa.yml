@@ -1,29 +1,65 @@
 
-name: Notion
+name: Build Notion IPA
 
-options:
-  bundleIdPrefix: com.non937393
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "Sources/**"
+      - "Resources/**"
+      - "Assets.xcassets/**"
+      - "project.yml"
+      - ".github/workflows/build-ipa.yml"
 
-targets:
-  Notion:
-    type: application
-    platform: iOS
-    deploymentTarget: "16.0"
+permissions:
+  contents: read
 
-    sources:
-      - path: Sources/Notion
+jobs:
+  build:
+    runs-on: macos-15
 
-    resources:
-      - path: Resources/index.html
-      - path: Assets.xcassets
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.non937393.notion
-        PRODUCT_NAME: Notion
-        INFOPLIST_KEY_CFBundleDisplayName: Notion
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        GENERATE_INFOPLIST_FILE: YES
-        SWIFT_VERSION: "5.0"
-        TARGETED_DEVICE_FAMILY: "1,2"
-        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build iOS app
+        run: |
+          xcodebuild \
+            -project Notion.xcodeproj \
+            -scheme Notion \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          set -e
+
+          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/Notion.app"
+
+          test -d "$APP_PATH"
+
+          mkdir -p build/ipa/Payload
+          cp -R "$APP_PATH" build/ipa/Payload/Notion.app
+
+          cd build/ipa
+          zip -qry "$GITHUB_WORKSPACE/Notion.ipa" Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Notion-IPA
+          path: Notion.ipa
+          if-no-files-found: error
+          retention-days: 14
