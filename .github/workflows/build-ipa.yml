@@ -56,6 +56,29 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+
+      - name: Diagnose compiled app icon
+        run: |
+          set -e
+
+          APP="build/DerivedData/Build/Products/Release-iphoneos/Notion.app"
+
+          echo "Checking compiled asset catalog..."
+          ls -lh "$APP/Assets.car"
+
+          echo "Checking icon metadata..."
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIcons" \
+            "$APP/Info.plist" || true
+
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIcons~ipad" \
+            "$APP/Info.plist" || true
+
+          echo "Checking asset compiler build logs..."
+          echo "Look above for CompileAssetCatalog warnings or errors."
+
+
       - name: Package IPA
         run: |
           set -e
