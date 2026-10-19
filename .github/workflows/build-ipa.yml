@@ -44,6 +44,28 @@ jobs:
             grep -E "ASSETCATALOG_COMPILER_APPICON_NAME|PRODUCT_BUNDLE_IDENTIFIER"
 
 
+      - name: Validate app icon PNG
+        run: |
+          sips -g format -g pixelWidth -g pixelHeight \
+            Assets.xcassets/AppIcon.appiconset/AppIcon.png
+
+          python3 - <<'PY'
+          import struct
+          import zlib
+
+          path = "Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+          with open(path, "rb") as f:
+              data = f.read()
+
+          assert data[:8] == b"\x89PNG\r\n\x1a\n", "Not a valid PNG"
+          width, height = struct.unpack(">II", data[16:24])
+          assert (width, height) == (1024, 1024), (
+              f"Expected 1024x1024, got {width}x{height}"
+          )
+          print("PNG header valid; dimensions:", width, "x", height)
+          PY
+
+
       - name: Build iOS app
         run: |
           xcodebuild \
