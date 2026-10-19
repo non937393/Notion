@@ -153,6 +153,29 @@ jobs:
           zip -qry "$GITHUB_WORKSPACE/Notion.ipa" Payload
 
 
+      - name: Check packaged app icon
+        run: |
+          set -e
+
+          mkdir -p /tmp/ipa-check
+          unzip -q Notion.ipa -d /tmp/ipa-check
+
+          APP="/tmp/ipa-check/Payload/Notion.app"
+
+          echo "Bundle ID:"
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIdentifier" \
+            "$APP/Info.plist"
+
+          echo "Icon name:"
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName" \
+            "$APP/Info.plist"
+
+          echo "Packaged asset catalog:"
+          ls -lh "$APP/Assets.car"
+
+
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
